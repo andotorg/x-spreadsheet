@@ -7,11 +7,15 @@
     
 </head>
 <body onload="load()">
+  <div style="position: fixed; right: 0; top: .3em;">
+  <iframe src="https://ghbtns.com/github-btn.html?user=myliang&repo=x-spreadsheet&type=star&count=true&size=large" frameborder="0" scrolling="0" width="160px" height="30px"></iframe>
+  </div>
   <div id="x-spreadsheet-demo"></div>
   <script>
     function load(){
-      var xs = x.spreadsheet('#x-spreadsheet-demo', {})
-        .loadData({
+      // x.spreadsheet.locale('zh-cn');
+      var xs = x.spreadsheet('#x-spreadsheet-demo', {showToolbar: true, showGrid: true})
+        .loadData([{
           freeze: 'B3',
           styles: [
             {
@@ -49,11 +53,12 @@
               }
             }
           },
-        }).change((cdata) => {
-          console.log(cdata);
-          console.log(xs.validate());
+        }]).change((cdata) => {
+          // console.log(cdata);
+          console.log(xs.getData());
         });
     }
   </script>
+  <!--script type="text/javascript" src="https://unpkg.com/x-data-spreadsheet@1.0.20/dist/locale/zh-cn.js"></script-->
 </body>
 </html>

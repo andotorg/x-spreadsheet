@@ -27,8 +27,11 @@ class Rows {
     row.style = style;
   }
 
-  sumHeight(min, max) {
-    return helper.rangeSum(min, max, i => this.getHeight(i));
+  sumHeight(min, max, exceptSet) {
+    return helper.rangeSum(min, max, (i) => {
+      if (exceptSet && exceptSet.has(i)) return 0;
+      return this.getHeight(i);
+    });
   }
 
   totalHeight() {
@@ -103,7 +106,7 @@ class Rows {
       if (deri < sri) dn = drn;
       else dn = dcn;
     }
-    // console.log('drn:', drn, ', dcn:', dcn);
+    // console.log('drn:', drn, ', dcn:', dcn, dn, isAdd);
     for (let i = sri; i <= eri; i += 1) {
       if (this._[i]) {
         for (let j = sci; j <= eci; j += 1) {
@@ -116,8 +119,7 @@ class Rows {
                 // ncell.text
                 if (autofill && ncell && ncell.text && ncell.text.length > 0) {
                   const { text } = ncell;
-                  let n = (jj - dsci) + (ii - dsri) + 1;
-                  // console.log('n:', n);
+                  let n = (jj - dsci) + (ii - dsri) + 2;
                   if (!isAdd) {
                     n -= dn + 1;
                   }
@@ -125,18 +127,19 @@ class Rows {
                     ncell.text = text.replace(/\w{1,3}\d/g, (word) => {
                       let [xn, yn] = [0, 0];
                       if (sri === dsri) {
-                        xn = n;
+                        xn = n - 1;
+                        // if (isAdd) xn -= 1;
                       } else {
-                        yn = n;
+                        yn = n - 1;
                       }
-                      // console.log('xn:', xn, ', yn:', yn, expr2expr(word, xn, yn));
+                      // console.log('xn:', xn, ', yn:', yn, word, expr2expr(word, xn, yn));
                       return expr2expr(word, xn, yn);
                     });
                   } else {
                     const result = /[\\.\d]+$/.exec(text);
                     // console.log('result:', result);
                     if (result !== null) {
-                      const index = Number(result[0]) + n;
+                      const index = Number(result[0]) + n - 1;
                       ncell.text = text.substring(0, result.index) + index;
                     }
                   }
@@ -167,6 +170,19 @@ class Rows {
       });
     });
     this._ = ncellmm;
+  }
+
+  // src: Array<Array<String>>
+  paste(src, dstCellRange) {
+    if (src.length <= 0) return;
+    const { sri, sci } = dstCellRange;
+    src.forEach((row, i) => {
+      const ri = sri + i;
+      row.forEach((cell, j) => {
+        const ci = sci + j;
+        this.setCellText(ri, ci, cell);
+      });
+    });
   }
 
   insert(sri, n = 1) {
@@ -255,6 +271,19 @@ class Rows {
     }
   }
 
+  maxCell() {
+    const keys = Object.keys(this._);
+    const ri = keys[keys.length - 1];
+    const col = this._[ri];
+    if (col) {
+      const { cells } = col;
+      const ks = Object.keys(cells);
+      const ci = ks[ks.length - 1];
+      return [parseInt(ri, 10), parseInt(ci, 10)];
+    }
+    return [0, 0];
+  }
+
   each(cb) {
     Object.entries(this._).forEach(([ri, row]) => {
       cb(ri, row);
@@ -278,7 +307,8 @@ class Rows {
   }
 
   getData() {
-    return this._;
+    const { len } = this;
+    return Object.assign({ len }, this._);
   }
 }
 
